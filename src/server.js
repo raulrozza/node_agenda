@@ -7,26 +7,12 @@ const MongoStore = require('connect-mongo')(session);
 const flash = require('connect-flash');
 const helmet = require('helmet');
 const csrf = require('csurf');
-const {
-    checkCsrfError,
-    csrfMiddleware,
-} = require('./src/middlewares/csrfConfig');
+const csrfConfig = require('./middlewares/csrfConfig');
+const errorHandler = require('./middlewares/errorHandler');
+const flashConfig = require('./middlewares/flashConfig');
 const routes = require('./routes');
 
 const app = express();
-
-mongoose
-    .connect(process.env.MONGO_URL, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-    .catch(error => console.error(error));
-
-app.use(helmet());
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static(path.resolve(__dirname, 'public')));
 
 const sessionOptions = session({
     secret: process.env.SECRET,
@@ -38,20 +24,38 @@ const sessionOptions = session({
         httpOnly: true,
     },
 });
+
+mongoose
+    .connect(process.env.MONGO_URL, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    .catch(error => console.error(error));
+
+// Various Middlewares
+app.use(helmet());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.resolve(__dirname, 'public')));
 app.use(sessionOptions);
 app.use(flash());
 
-app.set('views', path.resolve(__dirname, 'src', 'views'));
+// Views Config
+app.set('views', path.resolve(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+// CSRF Middlewares
 app.use(csrf());
-// Nossos próprios middlewares
+app.use(errorHandler);
+app.use(csrfConfig);
 
-app.use(checkCsrfError);
-app.use(csrfMiddleware);
+// Flash Messages
+app.use(flashConfig);
+
+// Routes
 app.use(routes);
 
 app.listen(process.env.PORT, () => {
-    console.log('Access at http://localhost:3000');
+    console.log(`Access at http://localhost:${process.env.PORT}`);
     console.log(`Server running at port ${process.env.PORT}`);
 });
