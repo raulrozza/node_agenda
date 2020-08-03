@@ -14,9 +14,22 @@
                             <th>Sobrenome</th>
                             <th>Telefone</th>
                             <th>E-mail</th>
+                            <th span="2"></th>
                         </tr>
+                        <% contacts.forEach(contact => { %>
+                            <tr>
+                                <td><%= contact.firstname %></td>
+                                <td><%= contact.lastname %></td>
+                                <td><%= contact.phone %></td>
+                                <td><%= contact.email %></td>
+                                <td><a href="/contact/<%= contact._id %>">Editar</a></td>
+                                <td><a class="text-danger" href="/contact/delete/<%= contact._id %>">Excluir</a></td>
+                            </tr>
+                        <% }); %>
                     </table>
                 </div>
+
+                <%- include('includes/messages') %>
             </div>
             <div class="col-lg-2"></div>
         </div>

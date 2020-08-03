@@ -1,5 +1,16 @@
+const Contact = require('../models/Contact');
+
 module.exports = {
-    index: (_, res) => {
-        return res.render('index');
+    index: async (req, res) => {
+        try {
+            const contacts = await Contact.getAll();
+
+            return res.render('index', { contacts });
+        } catch (error) {
+            req.flash('errors', 'Houve um erro.');
+            return req.session.save(() => {
+                return res.redirect('notfound');
+            });
+        }
     },
 };

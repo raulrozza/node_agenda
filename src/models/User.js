@@ -22,18 +22,26 @@ class User {
         this.errors = [];
     }
 
-    async validate() {
+    validateFields() {
         if (!validator.isEmail(this.email))
             this.errors.push('E-mail inválido!');
+    }
 
+    haveErrors() {
+        return this.errors.length > 0;
+    }
+
+    async checkUserExists() {
         const userExists = await UserModel.findOne({ email: this.email });
         if (userExists) this.errors.push('Usuário já existe!');
     }
 
     async create() {
-        await this.validate();
+        this.validateFields();
+        if (this.haveErrors()) throw new Error('Validation error.');
 
-        if (this.errors.length > 0) throw new Error('Validation error.');
+        await this.checkUserExists();
+        if (this.haveErrors()) throw new Error('Validation error.');
 
         const salt = bcryptjs.genSaltSync();
 
@@ -41,6 +49,18 @@ class User {
             email: this.email,
             password: bcryptjs.hashSync(this.password, salt),
         });
+    }
+
+    async sign() {
+        this.validateFields();
+        if (this.haveErrors()) throw new Error('Validation error.');
+
+        const user = await UserModel.findOne({ email: this.email });
+
+        if (!user || bcryptjs.compareSync(this.password, user.password)) {
+            this.errors.push('Usuário ou senha incorretos.');
+            throw new Error('Incorrect credentials.');
+        }
     }
 }
 
