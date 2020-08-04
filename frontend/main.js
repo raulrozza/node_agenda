@@ -1,6 +1,9 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
+import Login from './assets/modules/Login';
 
-import './assets/css/style.css';
+const sign = new Login('.form-sign');
+const register = new Login('.form-register');
 
-console.log('Olá mundo 3');
+sign.on('submit', Login.validateSubmit);
+register.on('submit', Login.validateSubmit);
